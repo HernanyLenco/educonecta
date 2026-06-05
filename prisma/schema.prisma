@@ -12,21 +12,53 @@ datasource db {
   provider = "postgresql"
 }
 
+enum acesso{
+ALUNO
+PROFESSOR
+ENCARREGADO
+ADMIN
+}
+
+model user{
+id String @id @unique
+email String @unique
+senha String
+nivel acesso @default(ALUNO)
+
+areaAdministrativas areaAdministrativa[]
+
+professors professor[]
+
+encarregados encarregado[]
+
+alunos aluno[]
+}
+
 model aluno {
-  id                String   @id @unique
-  nome              String
-  numeroDeEstudante Int      @unique @default(autoincrement())
-  idade             Int
-  genero            String
-  createdAt         DateTime @default(now())
+  id String   @id @unique
+  nome String
+  email String @unique
+  numeroDeEstudante Int @unique @default(autoincrement())
+  idade Int
+  genero String
+  createdAt DateTime @default(now())
+
+  userId String @unique //chave estrangeira para a tabela de alunos
+
+  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre aluno e o enum user.
 }
 
 model encarregado {
-  id               String   @id @unique
-  nome             String
-  email            String   @unique
-  numeroDeTelefone Int      @unique
-  createdAt        DateTime @default(now())
+  id String   @id @unique
+  nome String
+  profissao String
+  email String   @unique
+  numeroDeTelefone Int @unique
+  createdAt DateTime @default(now())
+
+  userId String @unique //chave estrangeira para a tabela de encarregados
+
+  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre encarregado e o enum user.
 }
 
 model faculdade {
@@ -40,14 +72,20 @@ model cadeiras {
 }
 
 model professor {
-  id               String @id @unique
-  nome             String
-  email            String @unique
-  numeroDeTelefone Int    @unique
+  id  String @id @unique
+  nome String
+  email String @unique
+  numeroDeTelefone Int @unique
+
+  userId String @unique //chave estrangeira para a tabela de professores
+  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre professor e o enum user.
 }
 
 model areaAdministrativa {
   id   String @id @unique
   nome String
   email String @unique
-}
+
+  userId String @unique //chave estrangeira para a tabela de areaAdministrativa
+  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre areaAdministrativa e o enum user.
+} 
