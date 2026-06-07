@@ -4,57 +4,58 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-enum acesso{
-ALUNO
-PROFESSOR
-ENCARREGADO
-ADMIN
+enum acesso {
+  ALUNO
+  PROFESSOR
+  ENCARREGADO
+  ADMIN
 }
 
-model user{
-id String @id @unique
-email String @unique
-senha String
-nivel acesso @default(ALUNO)
+model user {
+  id    String @id @unique
+  email String @unique
+  senha String
+  nivel acesso @default(ALUNO)
 
-areaAdministrativas areaAdministrativa[]
+  areaAdministrativas areaAdministrativa[]
 
-professors professor[]
+  professors professor[]
 
-encarregados encarregado[]
+  encarregados encarregado[]
 
-alunos aluno[]
+  alunos aluno[]
 }
 
 model aluno {
-  id String   @id @unique
-  nome String
-  email String @unique
-  numeroDeEstudante Int @unique @default(autoincrement())
-  idade Int
-  genero String
-  createdAt DateTime @default(now())
+  id                String   @id @unique
+  nome              String
+  email             String   @unique
+  numeroDeEstudante Int      @unique @default(autoincrement())
+  idade             Int
+  genero            String
+  createdAt         DateTime @default(now())
 
   userId String @unique //chave estrangeira para a tabela de alunos
 
   perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre aluno e o enum user.
+
+  aluno_cadeiras aluno_cadeira[]
 }
 
 model encarregado {
-  id String   @id @unique
-  nome String
-  profissao String
-  email String   @unique
-  numeroDeTelefone Int @unique
-  createdAt DateTime @default(now())
+  id               String   @id @unique
+  nome             String
+  profissao        String
+  email            String   @unique
+  numeroDeTelefone Int      @unique
+  createdAt        DateTime @default(now())
 
   userId String @unique //chave estrangeira para a tabela de encarregados
 
@@ -67,25 +68,38 @@ model faculdade {
 }
 
 model cadeiras {
-  id Int @unique @default(autoincrement())
+  id   Int    @unique @default(autoincrement())
   nome String
+
+  aluno_cadeiras aluno_cadeira[]
+}
+
+model aluno_cadeira {
+  id        String @id @unique
+  alunoId   String
+  cadeiraId Int
+
+  aluno   aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  cadeira cadeiras @relation(fields: [cadeiraId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, cadeiraId]) // Garante que um aluno não possa se inscrever na mesma cadeira mais de uma vez
 }
 
 model professor {
-  id  String @id @unique
-  nome String
-  email String @unique
-  numeroDeTelefone Int @unique
+  id               String @id @unique
+  nome             String
+  email            String @unique
+  numeroDeTelefone Int    @unique
 
-  userId String @unique //chave estrangeira para a tabela de professores
-  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre professor e o enum user.
+  userId        String @unique //chave estrangeira para a tabela de professores
+  perfilDeLogin user   @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre professor e o enum user.
 }
 
 model areaAdministrativa {
-  id   String @id @unique
-  nome String
+  id    String @id @unique
+  nome  String
   email String @unique
 
-  userId String @unique //chave estrangeira para a tabela de areaAdministrativa
-  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre areaAdministrativa e o enum user.
-} 
+  userId        String @unique //chave estrangeira para a tabela de areaAdministrativa
+  perfilDeLogin user   @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre areaAdministrativa e o enum user.
+}
