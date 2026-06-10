@@ -11,95 +11,249 @@ datasource db {
   provider = "postgresql"
 }
 
-enum acesso {
+enum NivelAcesso {
   ALUNO
   PROFESSOR
   ENCARREGADO
   ADMIN
 }
 
-model user {
-  id    String @id @unique
-  email String @unique
-  senha String
-  nivel acesso @default(ALUNO)
+// ============================================================
+// AUTENTICAÇÃO / PERFIL DE LOGIN
+// ============================================================
 
-  areaAdministrativas areaAdministrativa[]
+model User {
+  id          String      @id @default(uuid())
+  email       String      @unique
+  senha       String
+  nivelAcesso NivelAcesso @default(ALUNO)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  professors professor[]
+  // Relações — um User pode estar associado a apenas um perfil
+  areaAdministrativa AreaAdministrativa?
+  professor          Professor?
+  encarregado        Encarregado?
+  aluno              Aluno?
 
-  encarregados encarregado[]
-
-  alunos aluno[]
+  @@map("user")
 }
 
-model aluno {
-  id                String   @id @unique
+// ============================================================
+// ALUNO
+// ============================================================
+
+model Aluno {
+  id                String   @id @default(uuid())
   nome              String
-  email             String   @unique
-  numeroDeEstudante Int      @unique @default(autoincrement())
+  numeroDeEstudante Int      @unique
   idade             Int
   genero            String
   createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  userId String @unique //chave estrangeira para a tabela de alunos
+  // Chaves estrangeiras
+  cursoId String
+  userId  String @unique
 
-  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre aluno e o enum user.
+  // Relações diretas
+  curso         Curso @relation(fields: [cursoId], references: [id], onDelete: Restrict)
+  perfilDeLogin User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  aluno_cadeiras aluno_cadeira[]
+  // Relações many-to-many (via tabelas de junção explícitas)
+  encarregados   EncarregadoAluno[]
+  professores    ProfessorAluno[]
+  alunosCadeiras AlunoCadeira[]
+
+  @@map("aluno")
 }
 
-model encarregado {
-  id               String   @id @unique
+// ============================================================
+// ENCARREGADO
+// ============================================================
+
+model Encarregado {
+  id               String   @id @default(uuid())
   nome             String
   profissao        String
   email            String   @unique
-  numeroDeTelefone Int      @unique
+  numeroDeTelefone String   @unique // String para suportar formatos internacionais (ex: +244...)
   createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  userId String @unique //chave estrangeira para a tabela de encarregados
+  // Chave estrangeira
+  userId String @unique
 
-  perfilDeLogin user @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre encarregado e o enum user.
+  // Relações
+  perfilDeLogin User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alunos        EncarregadoAluno[]
+
+  @@map("encarregado")
 }
 
-model faculdade {
-  id   String @id @unique
-  nome String
+// Tabela de junção explícita: Encarregado <-> Aluno
+model EncarregadoAluno {
+  id            String   @id @default(uuid())
+  encarregadoId String
+  alunoId       String
+  createdAt     DateTime @default(now())
+
+  encarregado Encarregado @relation(fields: [encarregadoId], references: [id], onDelete: Cascade)
+  aluno       Aluno       @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@unique([encarregadoId, alunoId])
+  @@map("encarregado_aluno")
 }
 
-model cadeiras {
-  id   Int    @unique @default(autoincrement())
-  nome String
+// ============================================================
+// PROFESSOR
+// ============================================================
 
-  aluno_cadeiras aluno_cadeira[]
-}
-
-model aluno_cadeira {
-  id        String @id @unique
-  alunoId   String
-  cadeiraId Int
-
-  aluno   aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
-  cadeira cadeiras @relation(fields: [cadeiraId], references: [id], onDelete: Cascade)
-
-  @@unique([alunoId, cadeiraId]) // Garante que um aluno não possa se inscrever na mesma cadeira mais de uma vez
-}
-
-model professor {
-  id               String @id @unique
+model Professor {
+  id               String   @id @default(uuid())
   nome             String
-  email            String @unique
-  numeroDeTelefone Int    @unique
+  email            String   @unique
+  numeroDeTelefone String   @unique // String para suportar formatos internacionais
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  userId        String @unique //chave estrangeira para a tabela de professores
-  perfilDeLogin user   @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre professor e o enum user.
+  // Chave estrangeira
+  userId String @unique
+
+  // Relações
+  perfilDeLogin     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alunos            ProfessorAluno[]
+  professorCadeiras ProfessorCadeira[]
+  professorCursos   ProfessorCurso[]
+
+  @@map("professor")
 }
 
-model areaAdministrativa {
-  id    String @id @unique
-  nome  String
-  email String @unique
+// Tabela de junção explícita: Professor <-> Aluno
+model ProfessorAluno {
+  id          String   @id @default(uuid())
+  professorId String
+  alunoId     String
+  createdAt   DateTime @default(now())
 
-  userId        String @unique //chave estrangeira para a tabela de areaAdministrativa
-  perfilDeLogin user   @relation(fields: [userId], references: [id], onDelete: Cascade) // relacao entre areaAdministrativa e o enum user.
+  professor Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  aluno     Aluno     @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@unique([professorId, alunoId])
+  @@map("professor_aluno")
+}
+
+// ============================================================
+// CURSO
+// ============================================================
+
+model Curso {
+  id        String   @id @default(uuid())
+  nome      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  alunos          Aluno[]
+  cursoCadeiras   CursoCadeira[]
+  professorCursos ProfessorCurso[]
+
+  @@map("curso")
+}
+
+// ============================================================
+// CADEIRA (DISCIPLINA)
+// ============================================================
+
+model Cadeira {
+  id        String   @id @default(uuid())
+  nome      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  cursoCadeiras     CursoCadeira[]
+  professorCadeiras ProfessorCadeira[]
+  alunoCadeiras     AlunoCadeira[]
+
+  @@map("cadeira")
+}
+
+// ============================================================
+// TABELAS DE JUNÇÃO — CURSO / CADEIRA / PROFESSOR / ALUNO
+// ============================================================
+
+// Curso <-> Cadeira
+model CursoCadeira {
+  id        String   @id @default(uuid())
+  cursoId   String
+  cadeiraId String
+  createdAt DateTime @default(now())
+
+  curso   Curso   @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  cadeira Cadeira @relation(fields: [cadeiraId], references: [id], onDelete: Cascade)
+
+  @@unique([cursoId, cadeiraId])
+  @@map("curso_cadeira")
+}
+
+// Professor <-> Cadeira
+model ProfessorCadeira {
+  id          String   @id @default(uuid())
+  professorId String
+  cadeiraId   String
+  createdAt   DateTime @default(now())
+
+  professor Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  cadeira   Cadeira   @relation(fields: [cadeiraId], references: [id], onDelete: Cascade)
+
+  @@unique([professorId, cadeiraId])
+  @@map("professor_cadeira")
+}
+
+// Professor <-> Curso
+model ProfessorCurso {
+  id          String   @id @default(uuid())
+  professorId String
+  cursoId     String
+  createdAt   DateTime @default(now())
+
+  professor Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  curso     Curso     @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+
+  @@unique([professorId, cursoId])
+  @@map("professor_curso")
+}
+
+// Aluno <-> Cadeira
+model AlunoCadeira {
+  id        String   @id @default(uuid())
+  alunoId   String
+  cadeiraId String
+  createdAt DateTime @default(now())
+
+  aluno   Aluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  cadeira Cadeira @relation(fields: [cadeiraId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, cadeiraId])
+  @@map("aluno_cadeira")
+}
+
+// ============================================================
+// ÁREA ADMINISTRATIVA
+// ============================================================
+
+model AreaAdministrativa {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Chave estrangeira
+  userId String @unique
+
+  perfilDeLogin User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("area_administrativa")
 }
