@@ -6,6 +6,7 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import cursoRoutes from "./routes/cursoRoutes.js";
 import cadeiraRoutes from "./routes/cadeiraRoutes.js";
+import encarregadoAlunoRoutes from "./routes/encarregadoAlunoRoutes.js";
 
 dotenv.config(); // sempre primeiro
 
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/auth", authRoutes);
 app.use("/curso", cursoRoutes);
 app.use("/cadeira", cadeiraRoutes);
+app.use("/encarregadoAluno", encarregadoAlunoRoutes);
 
 // Ligar à BD e só depois iniciar o servidor
 connectDB().then(() => {
