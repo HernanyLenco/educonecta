@@ -1,7 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
+
+// Routes
 import authRoutes from "./routes/authRoutes.js";
+import cursoRoutes from "./routes/cursoRoutes.js";
+import cadeiraRoutes from "./routes/cadeiraRoutes.js";
 
 dotenv.config(); // sempre primeiro
 
@@ -14,10 +18,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rotas
 app.use("/auth", authRoutes);
+app.use("/curso", cursoRoutes);
+app.use("/cadeira", cadeiraRoutes);
 
 // Ligar à BD e só depois iniciar o servidor
 connectDB().then(() => {
   app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server is running!`);
   });
 });

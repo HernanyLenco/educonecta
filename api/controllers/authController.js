@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
     if (nivelAcesso === "ALUNO") {
       const numeroDeEstudante = Math.floor(
         100000 + Math.random() * 900000,
-      ).toString();
+      );
 
       await prisma.aluno.create({
         data: {
@@ -33,7 +33,7 @@ export const registerUser = async (req, res) => {
           numeroDeEstudante: numeroDeEstudante,
           idade: resto.idade,
           genero: resto.genero,
-          curso: resto.curso
+          cursoId: resto.cursoId,
         },
       });
     } else if (nivelAcesso === "PROFESSOR") {

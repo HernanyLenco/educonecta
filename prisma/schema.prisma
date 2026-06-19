@@ -46,6 +46,7 @@ model User {
 model Aluno {
   id                String   @id @default(uuid())
   nome              String
+  email             String   @unique
   numeroDeEstudante Int      @unique
   idade             Int
   genero            String
