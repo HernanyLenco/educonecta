@@ -11,19 +11,16 @@ export const registerUser = async (req, res) => {
       return res.status(409).json({ error: "Email já registado." });
     }
 
-    
     const passwordHash = await bcrypt.hash(senha, 12);
 
-    // Criar criar usuario 
+    // Criar criar usuario
     const user = await prisma.user.create({
       data: { email, senha: passwordHash, nivelAcesso },
     });
 
     // Criar registo específico para cada nível de acesso
     if (nivelAcesso === "ALUNO") {
-      const numeroDeEstudante = Math.floor(
-        100000 + Math.random() * 900000,
-      );
+      const numeroDeEstudante = Math.floor(100000 + Math.random() * 900000);
 
       await prisma.aluno.create({
         data: {
@@ -72,6 +69,19 @@ export const registerUser = async (req, res) => {
       message: "Utilizador registado com sucesso.",
       user: { id: user.id, email: user.email, nivelAcesso: user.nivelAcesso },
     });
+  } catch (error) {
+    console.error("Erro completo:", JSON.stringify(error, null, 2));
+    console.error("Mensagem:", error.message);
+    console.error("Stack:", error.stack);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAll = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+
+    res.json(users);
   } catch (error) {
     console.error("Erro completo:", JSON.stringify(error, null, 2));
     console.error("Mensagem:", error.message);

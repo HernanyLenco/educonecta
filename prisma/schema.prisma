@@ -65,6 +65,7 @@ model Aluno {
   encarregados   EncarregadoAluno[]
   professores    ProfessorAluno[]
   alunosCadeiras AlunoCadeira[]
+  alunoCurso     AlunoCurso[]
 
   @@map("aluno")
 }
@@ -158,6 +159,7 @@ model Curso {
   alunos          Aluno[]
   cursoCadeiras   CursoCadeira[]
   professorCursos ProfessorCurso[]
+  alunoCursos     AlunoCurso[]
 
   @@map("curso")
 }
@@ -224,6 +226,19 @@ model ProfessorCurso {
 
   @@unique([professorId, cursoId])
   @@map("professor_curso")
+}
+
+model AlunoCurso {
+  id        String   @id @default(uuid())
+  alunoId   String
+  cursoId   String
+  createdAt DateTime @default(now())
+
+  aluno Aluno @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  curso Curso @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, cursoId])
+  @@map("aluno_curso")
 }
 
 // Aluno <-> Cadeira
