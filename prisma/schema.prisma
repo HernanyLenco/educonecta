@@ -46,7 +46,6 @@ model User {
 model Aluno {
   id                String   @id @default(uuid())
   nome              String
-  email             String   @unique
   numeroDeEstudante Int      @unique
   idade             Int
   genero            String
@@ -78,7 +77,6 @@ model Encarregado {
   id               String   @id @default(uuid())
   nome             String
   profissao        String
-  email            String   @unique
   numeroDeTelefone String   @unique // String para suportar formatos internacionais (ex: +244...)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -114,7 +112,7 @@ model EncarregadoAluno {
 model Professor {
   id               String   @id @default(uuid())
   nome             String
-  email            String   @unique
+  profissao        String
   numeroDeTelefone String   @unique // String para suportar formatos internacionais
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -262,7 +260,6 @@ model AlunoCadeira {
 model AreaAdministrativa {
   id        String   @id @default(uuid())
   nome      String
-  email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

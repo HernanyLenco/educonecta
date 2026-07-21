@@ -9,6 +9,10 @@ import cadeiraRoutes from "./routes/cadeiraRoutes.js";
 import encarregadoAlunoRoutes from "./routes/encarregadoAlunoRoutes.js";
 import authProfAluno from "./routes/authProfAluno.js";
 import alunoCadeiraRoute from "./routes/alunoCadeiraRoute.js";
+import alunoCursoRoute from "./routes/alunoCursoRoute.js";
+import profCursoRoute from "./routes/profCursoRoute.js";
+import profCadeiraRoute from "./routes/profCadeiraRoute.js";
+import cursoCadeiraRoute from "./routes/cursoCadeiraRoute.js";
 
 dotenv.config(); // sempre primeiro
 
@@ -26,6 +30,10 @@ app.use("/cadeira", cadeiraRoutes);
 app.use("/encarregadoAluno", encarregadoAlunoRoutes);
 app.use("/profAluno", authProfAluno);
 app.use("/AlunoCadeira", alunoCadeiraRoute);
+app.use("/alunoCurso", alunoCursoRoute);
+app.use("/profCurso", profCursoRoute);
+app.use("/profCadeira", profCadeiraRoute);
+app.use("/cursoCadeira", cursoCadeiraRoute);
 
 // Ligar à BD e só depois iniciar o servidor
 connectDB().then(() => {
